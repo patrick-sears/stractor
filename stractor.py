@@ -16,30 +16,34 @@ import os
 
 
 
-
-if len(sys.argv) < 2:
-  print( "Error:  Config filename not supplied." )
-  exit(1)
-
-
-
-name_ifile = sys.argv[1]
-
-
 indir = ""
 oudir = ""
 dirlist = ""
 
-ifile = open( name_ifile, 'r' )
-for l in ifile:
-  if l == '\n':  continue
-  if l == '!end_of_data\n': break
-  if    l == "!indir\n":
-    indir = ifile.readline().strip()
-  elif  l == "!dirlist\n":
-    dirlist = ifile.readline().strip()
-  elif  l == "!oudir\n":
-    oudir = ifile.readline().strip()
+
+n_argv = len(sys.argv)
+
+for i in range(1, n_argv):
+  if argv[i] == "--config":
+    i += 1
+    if i == n_argv:
+      print("Error in reading arguments.")
+      exit(1)
+    #
+    name_ifile = sys.argv[i]
+    #
+    ifile = open( name_ifile, 'r' )
+    for l in ifile:
+      if l == '\n':  continue
+      if l == '!end_of_data\n': break
+      if    l == "!indir\n":
+        indir = ifile.readline().strip()
+      elif  l == "!dirlist\n":
+        dirlist = ifile.readline().strip()
+      elif  l == "!oudir\n":
+        oudir = ifile.readline().strip()
+
+
 
 if len(indir) == 0:
   print( "Error:  indir not found in config file." )
