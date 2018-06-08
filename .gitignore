@@ -1,0 +1,9 @@
+
+# 2018-06-08 create .gitignore
+
+
+*.o
+*.swp
+*~
+
+
