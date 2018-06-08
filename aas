@@ -1,0 +1,30 @@
+#!/bin/bash
+
+
+if [[ "_$1" = "_" ]]; then
+  echo "Error:  Need a config file as argument."
+  echo
+  exit 1
+else
+  config="$1"
+fi
+
+
+
+d="$HOME/bin/prs-stractor_d"
+
+
+"$d/preprocess.py" "$config"
+rv=$?
+
+if (( rv != 0 )); then
+  echo "Error:  An error was reported by preprocess.py."
+  echo "  rv = $rv"
+  exit 1
+fi
+
+
+
+
+
+
