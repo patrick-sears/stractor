@@ -26,7 +26,7 @@ n_argv = len(sys.argv)
 mode = "None"
 
 for i in range(1, n_argv):
-  if argv[i] == "--config":
+  if sys.argv[i] == "--config":
     i += 1
     if i == n_argv:
       print("Error in reading arguments.")
@@ -44,9 +44,9 @@ for i in range(1, n_argv):
         dirlist = ifile.readline().strip()
       elif  l == "!oudir\n":
         oudir = ifile.readline().strip()
-  elif argv[i] == "--mode_make_list":
+  elif sys.argv[i] == "--mode_make_list":
     mode = "make_list"
-  elif argv[i] == "--mode_export":
+  elif sys.argv[i] == "--mode_export":
     mode = "export"
 
 
@@ -88,7 +88,6 @@ if mode == "make_list":
   #
   exit(0)
 
-elif mode == "export":
 
 
 # If we get here, we're exporting videos.
