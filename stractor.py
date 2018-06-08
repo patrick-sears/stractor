@@ -23,6 +23,8 @@ dirlist = ""
 
 n_argv = len(sys.argv)
 
+mode = "None"
+
 for i in range(1, n_argv):
   if argv[i] == "--config":
     i += 1
@@ -42,7 +44,16 @@ for i in range(1, n_argv):
         dirlist = ifile.readline().strip()
       elif  l == "!oudir\n":
         oudir = ifile.readline().strip()
+  elif argv[i] == "--mode_make_list":
+    mode = "make_list"
+  elif argv[i] == "--mode_export":
+    mode = "export"
 
+
+if mode == "None":
+  print( "Error:  mode was not set." )
+  print( "  Need either --mode_make_list or --mode_export." )
+  exit(1)
 
 
 if len(indir) == 0:
@@ -61,20 +72,29 @@ print( "!dirlist:  [" + dirlist + "]" )
 
 
 
-# Check to see if dirlist already exists.
-if os.path.isfile( dirlist ):
- print( "Error:  indir file already exists." )
- exit(1)
-
-
-# Store all the Video folder names in file 'dirlist'.
-cmd = "ls -d " + indir + "/Video* > \"" + dirlist + "\""
-os.system( cmd )
 
 
 
+if mode == "make_list":
+  # Check to see if dirlist already exists.
+  if os.path.isfile( dirlist ):
+    print( "Error:  dirlist file already exists." )
+    exit(1)
+  #
+  # Store all the Video folder names in file 'dirlist'.
+  cmd = "ls -d " + indir + "/Video* > \"" + dirlist + "\""
+  os.system( cmd )
+  #
+  #
+  exit(0)
+
+elif mode == "export":
 
 
+# If we get here, we're exporting videos.
+if not os.path.isfile( dirlist ):
+  print( "Error:  dirlist file doesn't exists." )
+  exit(1)
 
 
 
