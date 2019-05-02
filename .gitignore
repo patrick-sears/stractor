@@ -1,9 +1,14 @@
 
-# 2018-06-08 create .gitignore
+# .gitignore can have comments!  Neet! : )
 
+*.swp
+*.bak
+*~
 
 *.o
-*.swp
-*~
+
+.*
+!.gitignore
+
 
 
