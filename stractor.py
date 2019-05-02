@@ -44,6 +44,8 @@ for i in range(1, n_argv):
         dirlist = ifile.readline().strip()
       elif  l == "!oudir\n":
         oudir = ifile.readline().strip()
+      elif  l == "!blobractor\n":
+        blobractor = ifile.readline().strip()
   elif sys.argv[i] == "--mode_make_list":
     mode = "make_list"
   elif sys.argv[i] == "--mode_export":
@@ -164,7 +166,8 @@ for i in range( n_vid ):
 # For each vid, call prs-blobractor.
 cmd = []
 for i in range( n_vid ):
-  cmd += [ "prs-blobractor" ]
+  # cmd += [ "prs-blobractor" ]
+  cmd += [ blobractor ]
   cmd += [ "--blobfname", fullinvid[i] ]
   cmd += [ "--oudir", fullouvid[i] ]
   rv = call( cmd )
