@@ -5,6 +5,7 @@
 # - It creates the dirlist file.
 # - It creates v### folders.
 
+from modules.c_dir_finder import *
 
 from subprocess import call
 
@@ -20,6 +21,7 @@ indir = ""
 oudir = ""
 dirlist = ""
 
+difi = c_dir_finder()
 
 n_argv = len(sys.argv)
 
@@ -41,11 +43,11 @@ for i in range(1, n_argv):
       if l == '\n':  continue
       if l == '!end_of_data\n': break
       if    l == "!indir\n":
-        indir = ifile.readline().strip()
+        indir = difi.fread_dir_list(ifile)
       elif  l == "!dirlist\n":
         dirlist = ifile.readline().strip()
       elif  l == "!oudir\n":
-        oudir = ifile.readline().strip()
+        oudir = difi.fread_dir_list(ifile)
       elif  l == "!blobractor\n":
         blobractor = ifile.readline().strip()
       elif  l.startswith("!vids_to_extract"):
