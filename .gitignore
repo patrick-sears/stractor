@@ -1,6 +1,8 @@
 
 # .gitignore can have comments!  Neet! : )
 
+__pycache__/
+
 *.swp
 *.bak
 *~
@@ -8,6 +10,9 @@
 *.o
 
 .*
+
+z_git_commit.data
+
 !.gitignore
 
 
