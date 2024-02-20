@@ -7,14 +7,7 @@
 
 from modules.c_dir_finder import *
 
-from subprocess import call
-
-import sys
-import os
-# from os import system
-# from pathlib import Path
-
-
+import sys, os, shutil, subprocess
 
 
 indir = ""
@@ -23,34 +16,43 @@ dirlist = ""
 
 difi = c_dir_finder()
 
-n_argv = len(sys.argv)
+n_arg = len(sys.argv)
 
-mode = "None"
+config_loaded = False
 
-vte0 = []
+vte = []
 
-for i in range(1, n_argv):
-  if sys.argv[i] == "--config":
-    i += 1
-    if i == n_argv:
+ii = 0
+while(True):
+  ii += 1
+  if ii >= n_arg:  break
+  #
+  arg = sys.argv[ii]
+  #
+  if arg == "--config":
+    config_loaded = True
+    ii += 1
+    if ii >= n_arg:
       print("Error in reading arguments.")
       exit(1)
     #
-    name_ifile = sys.argv[i]
+    name_ifile = sys.argv[ii]
     #
     ifile = open( name_ifile, 'r' )
     for l in ifile:
-      if l == '\n':  continue
-      if l == '!end_of_data\n': break
-      if    l == "!indir\n":
-        indir = difi.fread_dir_list(ifile)
-      elif  l == "!dirlist\n":
-        dirlist = ifile.readline().strip()
-      elif  l == "!oudir\n":
-        oudir = difi.fread_dir_list(ifile)
-      elif  l == "!blobractor\n":
-        blobractor = ifile.readline().strip()
-      elif  l.startswith("!vids_to_extract"):
+      l = l.strip()
+      if len(l) == 0:  continue
+      if l[0] == '#':  continue
+      mm = [m.strip() for m in l.split(';')]
+      key = mm[0]
+      #
+      if key == "!end_of_data":  break
+      elif key == '!sava_file':  sava_file = mm[1]
+      elif key == "!indir":   indir = difi.fread_dir_list(ifile)
+      elif key == "!dirlist": dirlist = mm[1]
+      elif key == "!oudir":   oudir = difi.fread_dir_list(ifile)
+      elif key == "!blobractor":  blobractor = mm[1]
+      elif key == "!vids_to_extract":
         l = l.strip()
         ll = l.split(' ')
         ###
@@ -64,13 +66,22 @@ for i in range(1, n_argv):
           if l[0] == '#':  continue
           ll = l.split(' ')
           for k in range(len(ll)):
-            vte0.append( int(ll[k])-1 )
-            # vte0:  vids to extract, 0-offset
-  elif sys.argv[i] == "--mode_make_list":
-    mode = "make_list"
-  elif sys.argv[i] == "--mode_export":
-    mode = "export"
+            vte.append( int(ll[k]) ) # vte:  vids to extract
+      else:
+        print("Error e0.  Unrecognized key.")
+        print("  key:  ", key)
+        sys.exit(1)
+  else:
+    print("Error.  Unrecognized argument.")
+    print("  arg: ", arg)
+    sys.exit(1)
+  #
+  #
 
+if not config_loaded:
+  print("Error.")
+  print("  No config was loaded.")
+  sys.exit(1)
 
 
 if vids_to_extract != 'partial' and vids_to_extract != 'all':
@@ -80,11 +91,6 @@ if vids_to_extract != 'partial' and vids_to_extract != 'all':
   print("    !vids_to_extract all")
   sys.exit(1)
 
-
-if mode == "None":
-  print( "Error:  mode was not set." )
-  print( "  Need either --mode_make_list or --mode_export." )
-  exit(1)
 
 
 if len(indir) == 0:
@@ -103,122 +109,117 @@ print( "!dirlist:  [" + dirlist + "]" )
 
 
 
-
-
-
-if mode == "make_list":
-  # Check to see if dirlist already exists.
-  if os.path.isfile( dirlist ):
-    print( "Error:  dirlist file already exists." )
-    exit(1)
-  #
-  # Store all the Video folder names in file 'dirlist'.
-  cmd = "ls -d " + indir + "/Video* > \"" + dirlist + "\""
-  os.system( cmd )
-  #
-  #
-  exit(0)
-
-
-
-# If we get here, we're exporting videos.
-if not os.path.isfile( dirlist ):
-  print( "Error:  dirlist file doesn't exists." )
-  exit(1)
-
-
-
-# Import vid list into this script.
 invid = []
 ouvid = []
 fullinvid = []
 fullouvid = []
 
-f2 = open( dirlist )
-i = 0
-for l in f2:
-  l = l.strip()
-  if len(l) == 0:  continue
-  if l[0] == '#':  continue
+lisa = os.listdir(indir)
+lisa.sort()
+vid_num = 0
+for name in lisa:
+  fu_dir = indir+'/'+name
+  if not name.startswith("Video"):  continue
+  if not os.path.isdir( fu_dir ):   continue
+  if not os.path.isfile( fu_dir+'/Video Images.all' ):
+    print("Warning.  Missing 'Video Images.all'.")
+    print("  vid_num: ", vid_num)
+    print("  name:    ", name)
   #
-  invid.append(l)
+  vid_num += 1
   #
-  vvv = 'v' + str(i+1).zfill(3)
-  ouvid.append( vvv )
+  invid.append(name)
+  fullinvid.append(fu_dir+'/Video Images.all')
   #
+  vid = 'v{:03d}'.format( vid_num )
+  ouvid.append( vid )
+  fullouvid.append( oudir+'/'+vid )
   #
-  fullinvid.append( invid[i]+'/'+"Video Images.all")
-  fullouvid.append( oudir+'/'+vvv )
+
+n_vid = len(ouvid)
+print("n_vid: ", n_vid)
+
+if not os.path.isfile( sava_file ):
+  print("Error.  Couldn't find sava file.")
+  print("  sava_file: ", sava_file)
+  sys.exit(1)
+
+safi_n_vid = 0
+f = open(sava_file, encoding='cp1252')
+f.readline() # remove header.
+for l in f:  safi_n_vid += 1
+f.close()
+
+if n_vid == safi_n_vid:
+  print("Good:  n_vid == safi_n_vid.")
+else:
+  print("Error:  n_vid != safi_n_vid.")
+  print("  n_vid:      ", n_vid)
+  print("  safi_n_vid: ", safi_n_vid)
+  sys.exit(1)
+
+
+
+# If we get here, we're exporting videos.
+if os.path.exists( dirlist ):
+  print("Warning.  About to overwrite dirlist.")
+  uin = input("  Is this OK (Y/n)? ")
+  if uin != '' and uin != 'Y' and uin != 'y':
+    print("Early exit.")
+    sys.exit(0)
+print("  OK")
+
+ou = ''
+for i in range(n_vid):
+  vid_num = i+1
+  ou += "v{:03d}".format( vid_num )
+  ou += " ; "+fullinvid[i]
+  ou += '\n'
+fz = open(dirlist, 'w'); fz.write(ou);  fz.close();
+
+
+n_vte = len(vte)
+print("n_vte (vids to extract): ", n_vte)
+for i in range(n_vte):
+  vid_num = vte[i]
+  if vid_num > n_vid or vid_num < 1:
+    print("Error.  Couldn't find one of the vtes.")
+    print("  vte: ", vid_num)
+    sys.exit(1)
+
+
+lisa = os.listdir(oudir)
+if len(lisa) > 0:
+  print("Error.  oudir is not empty.")
+  print("  oudir: ", oudir)
+  sys.exit(1)
+
+
+
+for i in range(n_vte):
+  vid_num = vte[i]
+  vid = "v{:03d}".format(vid_num)
+  os.mkdir(oudir+'/'+vid)
+
+
+for i in range(n_vte):
+  print('.', end='', flush=True)
+  vid_num = vte[i]
+  iv = vid_num - 1
   #
-  i += 1
-f2.close()
-
-
-n_vid = len(invid)
-print( "Found %1d" % n_vid, "videos." )
-
-
-if vids_to_extract == 'all':
-  vte0 = []
-  for i in range(n_vid):  vte0 == int(i)
-
-n_vte = len(vte0)
-
-
-############################################
-# Make vid folders.
-
-
-# Check to make sure invids exist.
-# If one is missing, it's really strange.
-for i in range( n_vte ):
-  j = vte0[i]
-  #
-  if not os.path.exists( fullinvid[j] ):
-    print( "Error:  invid missing" )
-    print( "  Missing:  ", fullinvid[j])
-    exit(1)
-
-
-# Check to see if any of the vid folders exist.
-# If so, exit with an error so that we don't overwrite
-# previously exported images by mistake.
-for i in range( n_vte ):
-  j = vte0[i]
-  #
-  if os.path.exists( fullouvid[j] ):
-    print( "Error:  vid", fullouvid[j], "output dir already exists." )
-    exit(1)
-
-
-
-# Now create all the folders.
-for i in range( n_vte ):
-  j = vte0[i]
-  #
-  v = j + 1
-  vvv = 'v' + str(v).zfill(3)
-  os.mkdir( oudir + "/" + vvv )
-
-
-
-############################################
-# For each vid, call prs-blobractor.
-cmd = []
-for i in range( n_vte ):
-  j = vte0[i]
-  #
-  # cmd += [ "prs-blobractor" ]
-  cmd += [ blobractor ]
-  cmd += [ "--blobfname", fullinvid[j] ]
-  cmd += [ "--oudir", fullouvid[j] ]
-  rv = call( cmd )
+  cmd = [ blobractor ]
+  cmd += [ "--blobfname", fullinvid[iv] ]
+  cmd += [ "--oudir",     fullouvid[iv] ]
+  rv = subprocess.call( cmd )
   if rv != 0:
+    print()
     print("Error.")
     print("  blobractor rv = ", rv)
     exit(1)
+print()
 
 
+print("Done.")
 
 
 

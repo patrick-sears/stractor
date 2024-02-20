@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo
+
+prs-stractor --config "sava_a.config"
+
+echo
+
+
