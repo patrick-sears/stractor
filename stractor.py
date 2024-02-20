@@ -8,6 +8,12 @@
 from modules.c_dir_finder import *
 
 import sys, os, shutil, subprocess
+from datetime import datetime
+
+progdir = os.path.dirname(os.path.realpath(__file__))
+
+form1 = "%Y-%m-%d %H:%M:%S"
+stime = datetime.now().strftime(form1)
 
 
 indir = ""
@@ -22,6 +28,9 @@ config_loaded = False
 
 vte = []
 
+save_log = False
+log_fname = "z_stractor.log"  # default can be changed in config
+
 ii = 0
 while(True):
   ii += 1
@@ -30,8 +39,8 @@ while(True):
   arg = sys.argv[ii]
   #
   if arg == "--config":
-    config_loaded = True
     ii += 1
+    config_loaded = True
     if ii >= n_arg:
       print("Error in reading arguments.")
       exit(1)
@@ -52,6 +61,7 @@ while(True):
       elif key == "!dirlist": dirlist = mm[1]
       elif key == "!oudir":   oudir = difi.fread_dir_list(ifile)
       elif key == "!blobractor":  blobractor = mm[1]
+      elif key == "!log_fname":  log_fname = mm[1]
       elif key == "!vids_to_extract":
         l = l.strip()
         ll = l.split(' ')
@@ -71,6 +81,8 @@ while(True):
         print("Error e0.  Unrecognized key.")
         print("  key:  ", key)
         sys.exit(1)
+  elif arg == "--log":
+    save_log = True
   else:
     print("Error.  Unrecognized argument.")
     print("  arg: ", arg)
@@ -218,6 +230,39 @@ for i in range(n_vte):
     exit(1)
 print()
 
+if save_log:
+  ou = ''
+  ou += '\n'
+  ou += '#'+'_'*66 + '\n'
+  ou += 'time  ; '+stime + '\n'
+  ou += 'indir ; '+indir+'\n'
+  ou += 'oudir ; '+oudir+'\n'
+  ou += 'vte   ;'
+  for i in range(n_vte):
+    ou += ' '+str(vte[i])
+  ou += '\n'
+  progd = progdir.split('/')[-1]
+  fgit = progdir+'/z_git_commit.data'
+  ou += 'stractor dir ; '+progd+'\n'
+  ou += 'git commit:\n'
+  ou += '-'*22+'\n'
+  if os.path.isfile(fgit):
+    f=open(fgit)
+    # Fist five lines max.
+    i=0
+    for l in f:
+      l=l.strip()
+      # Only non-empty lines.
+      if len(l) > 0:  ou += l+'\n'
+      i += 1
+      if i == 5:  break
+    f.close()
+  else:
+    ou += 'Git commit file not found.\n'
+  #
+  ou += '-'*22+'\n'
+  ou += '\n'
+  fz=open(log_fname,'a'); fz.write(ou); fz.close();
 
 print("Done.")
 
