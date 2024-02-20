@@ -45,9 +45,9 @@ while(True):
       print("Error in reading arguments.")
       exit(1)
     #
-    name_ifile = sys.argv[ii]
+    config_fname = sys.argv[ii]
     #
-    ifile = open( name_ifile, 'r' )
+    ifile = open( config_fname, 'r' )
     for l in ifile:
       l = l.strip()
       if len(l) == 0:  continue
@@ -234,10 +234,11 @@ if save_log:
   ou = ''
   ou += '\n'
   ou += '#'+'_'*66 + '\n'
-  ou += 'time  ; '+stime + '\n'
-  ou += 'indir ; '+indir+'\n'
-  ou += 'oudir ; '+oudir+'\n'
-  ou += 'vte   ;'
+  ou += 'time   ; '+stime + '\n'
+  ou += 'config ; '+config_fname + '\n'
+  ou += 'indir  ; '+indir+'\n'
+  ou += 'oudir  ; '+oudir+'\n'
+  ou += 'vte    ;'
   for i in range(n_vte):
     ou += ' '+str(vte[i])
   ou += '\n'
